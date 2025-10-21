@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>PropIA Smart Real Estate Network</title>
+<meta name="description" content="PropIA Smart Real Estate Network — Monetiza leads descartados y recibe leads que sí encajan. MVP interactivo 100% en el navegador." />
+<meta property="og:title" content="PropIA Smart Real Estate Network" />
+<meta property="og:description" content="Monetiza leads descartados y recibe leads que sí encajan. Prueba el MVP interactivo." />
+<meta property="og:type" content="website" />
+<meta name="theme-color" content="#2563eb" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cdefs/%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Cpath d='M18 40 L32 20 L46 40' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='32' cy='40' r='4' fill='%2310b981'/%3E%3C/svg%3E" />
+<style>
+  :root{
+    --primary:#2563eb; --primary-600:#1d4ed8; --accent:#10b981;
+    --bg:#f7f8fb; --ink:#0b1220; --muted:#64748b; --line:#e5e7eb; --panel:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b1324; --panel:#0f1a32; --ink:#e5e7eb; --muted:#93a5be; --line:#223354;
+    }
+    body{color-scheme: dark;}
+  }
+  [data-theme="dark"]{
+    --bg:#0b1324; --panel:#0f1a32; --ink:#e5e7eb; --muted:#93a5be; --line:#223354;
+  }
+  [data-theme="light"]{
+    --bg:#f7f8fb; --panel:#ffffff; --ink:#0b1220; --muted:#64748b; --line:#e5e7eb;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(900px 480px at -10% -10%, rgba(37,99,235,.10), transparent 70%),
+      radial-gradient(700px 420px at 110% -10%, rgba(16,185,129,.10), transparent 70%),
+      var(--bg);
+  }
+  .glass{background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border:1px solid rgba(17,24,39,.06)}
+  @media (prefers-color-scheme: dark){
+    .glass{background:rgba(17,24,39,.5);border:1px solid rgba(255,255,255,.06)}
+  }
+  [data-theme="dark"] .glass{background:rgba(17,24,39,.5);border:1px solid rgba(255,255,255,.06)}
+
+  /* Layout */
+  .app{display:grid;grid-template-columns:280px 1fr;height:100vh}
+  .sidebar{background:#0b1220;color:#e5e7eb;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.06);transform:translateX(0);transition:transform .25s ease}
+  .brand{padding:18px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:12px}
+  .logo{width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--accent))}
+  .brand h1{font-size:14px;margin:0;font-weight:900;letter-spacing:.2px}
+  .nav{padding:10px}
+  .nav button{width:100%;text-align:left;background:transparent;border:0;color:#e5e7eb;padding:12px 14px;border-radius:12px;display:block;cursor:pointer;font-weight:800;font-size:15px}
+  .nav button.active{background:linear-gradient(135deg, rgba(37,99,235,.28), rgba(16,185,129,.28));color:#fff;border:1px solid rgba(255,255,255,.10)}
+
+  .main{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  .topbar{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;position:sticky;top:0;z-index:10}
+  .topbar > .wrap{border-radius:16px;padding:10px 12px}
+  .title{font-weight:900;letter-spacing:.2px}
+  .btn{background:var(--primary);color:#fff;border:0;border-radius:14px;padding:12px 16px;font-weight:900;cursor:pointer;font-size:15px;box-shadow:none}
+  .btn:hover{background:var(--primary-600)}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+  .btn.icon{display:inline-flex;align-items:center;gap:6px}
+
+  .dropdown{position:relative}
+  .dropdown-menu{position:absolute;right:0;top:110%;background:var(--panel);border:1px solid var(--line);border-radius:14px;display:none;min-width:220px;z-index:20;overflow:hidden}
+  .dropdown.open .dropdown-menu{display:block}
+  .dropdown-menu button{width:100%;background:transparent;border:0;text-align:left;padding:12px 14px;cursor:pointer;font-weight:800;color:var(--ink)}
+  .dropdown-menu button:active{background:rgba(0,0,0,.05)}
+
+  .content{padding:14px;height:calc(100vh - 64px);overflow:auto;-webkit-overflow-scrolling:touch}
+  .panel{border-radius:18px;padding:12px;background:var(--panel);border:1px solid var(--line)}
+  .grid{display:grid;gap:12px}
+  .grid.cards{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .card{border-radius:18px;padding:12px;background:var(--panel);border:1px solid var(--line)}
+  .card h4{margin:0 0 6px 0;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+  .big{font-size:22px;font-weight:900}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .input{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .input input,.input select{border:0;outline:0;width:100%;font-size:14px;color:var(--ink);background:transparent}
+
+  table{width:100%;border-collapse:separate;border-spacing:0 8px;min-width:720px;color:var(--ink)}
+  thead th{text-align:left;font-size:12px;color:var(--muted);font-weight:900;padding:0 10px}
+  tbody tr{background:var(--panel);border:1px solid var(--line)}
+  tbody td{padding:12px 10px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  tbody tr td:first-child{border-left:1px solid var(--line);border-radius:12px 0 0 12px}
+  tbody tr td:last-child{border-right:1px solid var(--line);border-radius:0 12px 12px 0}
+  .badge{font-size:12px;padding:6px 10px;border-radius:999px;display:inline-block;font-weight:800}
+  .ok{background:rgba(16,185,129,.15);color:#0d7a5b}
+  .warn{background:rgba(245,158,11,.15);color:#925a0e}
+  .info{background:rgba(37,99,235,.15);color:#1e40af}
+
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+  .modal.show{display:flex}
+  .dialog{background:var(--panel);border:1px solid var(--line);border-radius:20px;max-width:920px;width:100%;position:relative;transform:translateY(8px) scale(.98);opacity:0;transition:transform .2s ease, opacity .2s ease}
+  .modal.show .dialog{transform:translateY(0) scale(1);opacity:1}
+  .dialog header{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .dialog header h3{margin:0}
+  .dialog .close-x{position:absolute;right:10px;top:6px;background:transparent;border:0;font-size:28px;line-height:1;cursor:pointer;color:#6b7280}
+  .dialog .body{padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .dialog .field{display:flex;flex-direction:column;gap:6px}
+  .dialog footer{padding:12px 14px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+
+  /* Spotlight Tour */
+  .spot-mask{position:fixed;inset:0;background:rgba(2,8,23,.65);backdrop-filter:saturate(120%) blur(2px);z-index:80;display:none}
+  .spot-ring{position:fixed;border-radius:9999px;border:2px solid rgba(255,255,255,.9);box-shadow:0 0 0 8px rgba(37,99,235,.35), 0 0 40px rgba(37,99,235,.45);z-index:81;pointer-events:none;display:none;transition:all .22s ease}
+  .tip{position:fixed;max-width:320px;background:#111827;color:#fff;border-radius:16px;padding:12px 14px;z-index:82;display:none}
+  .tip h4{margin:0 0 6px 0}
+  .tip .actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .tip .btn{padding:10px 12px;border-radius:10px}
+  .tip .btn.ghost{color:#fff;border:1px solid #334155;background:transparent}
+
+  /* Checklist */
+  .check-fab{position:fixed;left:14px;bottom:14px;z-index:60;width:58px;height:58px;border-radius:999px;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(0,0,0,.06);color:#111827}
+  [data-theme="dark"] .check-fab{background:rgba(17,24,39,.85);color:#e5e7eb;border:1px solid rgba(255,255,255,.06)}
+  .check-fab svg{position:absolute;inset:0}
+  .check-fab .inner{position:relative;z-index:1;font-weight:900}
+  .check-panel{position:fixed;left:14px;bottom:82px;width:320px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;z-index:60;display:none}
+  .task{display:flex;gap:10px;align-items:flex-start;padding:8px;border-radius:12px}
+  .task.done{background:rgba(15, 220, 150, .08)}
+  .task .dot{width:18px;height:18px;border-radius:999px;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:12px}
+  [data-theme="dark"] .task .dot{border-color:#334155}
+  .task.done .dot{background:var(--accent);border-color:var(--accent);color:#fff}
+  .check-close{position:absolute;right:8px;top:6px;background:transparent;border:0;cursor:pointer;color:#64748b}
+
+  /* Overlay Celebración */
+  .overlay{position:fixed;inset:0;background:rgba(17,24,39,.35);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:90}
+  .overlay.show{display:flex}
+  .cele-card{background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border:1px solid rgba(0,0,0,.06);border-radius:18px;max-width:420px;padding:18px;text-align:center;color:#111827}
+  [data-theme="dark"] .cele-card{background:rgba(17,24,39,.85);border:1px solid rgba(255,255,255,.08);color:#e5e7eb}
+
+  @media (max-width:980px){
+    .app{grid-template-columns:1fr}
+    .sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;transform:translateX(-100%)}
+    .sidebar.open{transform:translateX(0)}
+    .dialog .body{grid-template-columns:1fr}
+    .check-panel{width:88vw;left:6vw}
+  }
+</style>
+</head>
+<body>
+  <div class="app" id="appRoot">
+    <aside class="sidebar" id="sidebar" aria-label="Navegación lateral">
+      <div class="brand"><div class="logo"></div><h1>PropIA Smart Real Estate Network</h1></div>
+      <nav class="nav" id="nav">
+        <button data-view="dashboard" class="active">🏷️ Resumen</button>
+        <button data-view="inmuebles">🏠 Inmuebles</button>
+        <button data-view="leads">👥 Leads</button>
+        <button data-view="coincidencias">🔄 Coincidencias</button>
+        <button data-view="ofertas">📩 Ofertas</button>
+        <button data-view="comisiones">💸 Comisiones</button>
+        <button data-view="analitica">📈 Analítica</button>
+        <button data-view="config">⚙️ Configuración</button>
+        <button data-view="cuenta">👤 Cuenta</button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="wrap glass"><span class="title" id="pageTitle">Resumen</span></div>
+        <div class="wrap glass" style="display:flex;gap:10px;align-items:center">
+          <button class="btn ghost" id="toggleMenu">Menú</button>
+          <div class="dropdown" id="quickAddWrap">
+            <button class="btn icon" id="quickAdd">+ Agregar</button>
+            <div class="dropdown-menu" id="quickMenu">
+              <button id="quickAddInmueble">➕ Inmueble</button>
+              <button id="quickAddLead">➕ Lead</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content" id="content">
+        <section data-page="dashboard">
+          <div class="grid cards">
+            <div class="card"><h4>Leads cargados</h4><div class="big" id="kpiLeads">0</div></div>
+            <div class="card"><h4>Inmuebles activos</h4><div class="big" id="kpiInmuebles">0</div></div>
+            <div class="card"><h4>Coincidencias encontradas</h4><div class="big" id="kpiMatches">0</div></div>
+            <div class="card"><h4>Ingresos estimados</h4><div class="big" id="kpiIngresos">$0</div></div>
+          </div>
+
+          <div style="height:10px"></div>
+          <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+              <h3 style="margin:0">Actividad reciente</h3>
+              <div class="toolbar">
+                <button class="btn ghost" id="btnDemoData" title="Carga ejemplos">Cargar datos demo</button>
+                <button class="btn" id="btnMatchNow">Buscar coincidencias</button>
+              </div>
+            </div>
+            <div id="timeline" class="grid" style="margin-top:10px"></div>
+          </div>
+        </section>
+
+        <section data-page="inmuebles" style="display:none">
+          <div class="toolbar">
+            <div class="input" style="min-width:260px"><input id="filtroInmuebles" placeholder="Filtrar por ciudad, zona, nombre..."></div>
+            <button class="btn" id="addInmueble">+ Agregar inmueble</button>
+            <button class="btn ghost" id="dlTplInm">Descargar plantilla CSV</button>
+          </div>
+          <div class="panel">
+            <table>
+              <thead><tr><th>Proyecto</th><th>Tipo</th><th>Ciudad</th><th>Zona</th><th>Área</th><th>Hab.</th><th>Parq.</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+              <tbody id="tblInmuebles"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section data-page="leads" style="display:none">
+          <div class="toolbar">
+            <div class="input" style="min-width:260px"><input id="filtroLeads" placeholder="Filtrar por nombre, ciudad, origen..."></div>
+            <button class="btn" id="addLead">+ Subir lead</button>
+            <label class="btn ghost" for="csvInput" style="cursor:pointer">Importar CSV</label>
+            <input id="csvInput" type="file" accept=".csv" style="display:none">
+            <button class="btn ghost" id="dlTplLead">Descargar plantilla CSV</button>
+          </div>
+          <div class="panel">
+            <table>
+              <thead><tr><th>Nombre</th><th>Ciudad</th><th>Presupuesto</th><th>Área</th><th>Hab.</th><th>Parq.</th><th>Tipo</th><th>Estado</th><th>Origen</th><th></th></tr></thead>
+              <tbody id="tblLeads"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section data-page="coincidencias" style="display:none">
+          <div class="toolbar">
+            <button class="btn" id="recompute">Recalcular coincidencias</button>
+          </div>
+          <div id="matchList" class="grid"></div>
+        </section>
+
+        <section data-page="ofertas" style="display:none">
+          <div class="panel">
+            <table>
+              <thead><tr><th>Lead</th><th>Para inmueble</th><th>Monto oferta</th><th>Estado</th><th></th></tr></thead>
+              <tbody id="tblOfertas"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section data-page="comisiones" style="display:none">
+          <div class="grid cards">
+            <div class="card"><h4>Comisiones pagadas</h4><div class="big" id="kpiComPag">$0</div></div>
+            <div class="card"><h4>Leads vendidos</h4><div class="big" id="kpiLeadsVend">0</div></div>
+            <div class="card"><h4>Ticket promedio</h4><div class="big" id="kpiTicket">$0</div></div>
+            <div class="card"><h4>Método preferido</h4><div class="big" id="kpiMetodo">—</div></div>
+          </div>
+          <div class="panel" style="margin-top:12px">
+            <table>
+              <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Estado</th></tr></thead>
+              <tbody id="tblComisiones"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section data-page="analitica" style="display:none">
+          <div class="grid cards">
+            <div class="card"><h4>Ratio de coincidencia</h4><div class="big" id="kpiRatio">0%</div></div>
+            <div class="card"><h4>Leads calificados</h4><div class="big" id="kpiCalificados">0</div></div>
+            <div class="card"><h4>% No contactados</h4><div class="big" id="kpiNoContact">0%</div></div>
+            <div class="card"><h4>Tiempo medio de respuesta</h4><div class="big" id="kpiSLA">—</div></div>
+          </div>
+        </section>
+
+        <section data-page="config" style="display:none">
+          <div class="panel grid" style="grid-template-columns:1fr 1fr">
+            <div>
+              <h3>Parámetros de monetización</h3>
+              <div class="input"><label>Precio fijo por lead tomado (COP)</label><input id="cfgFeeLead" type="number" min="0" value="5000"></div>
+              <div class="input"><label>% comisión por cierre</label><input id="cfgFeePct" type="number" min="0" max="100" value="30"></div>
+              <div class="input"><label>Ventana de prioridad (horas)</label><input id="cfgSLA" type="number" min="1" value="24"></div>
+              <div style="margin-top:12px"><button class="btn" id="saveCfg">Guardar configuración</button></div>
+            </div>
+            <div>
+              <h3>Exportar / Importar</h3>
+              <div class="toolbar">
+                <button class="btn ghost" id="exportCSV">Exportar datos (CSV)</button>
+                <button class="btn ghost" id="resetData">Reiniciar demo</button>
+              </div>
+              <p class="input" style="border:none;padding:0;background:transparent;color:var(--muted)">
+                La información del MVP se guarda en tu navegador (LocalStorage).
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section data-page="cuenta" style="display:none">
+          <div class="panel grid" style="grid-template-columns:1fr 1fr">
+            <div>
+              <h3>Perfil</h3>
+              <div class="input"><label>Nombre</label><input id="acctNombre"></div>
+              <div class="input"><label>Email</label><input id="acctEmail"></div>
+              <div class="input"><label>Teléfono</label><input id="acctTel"></div>
+              <div class="input"><label>Empresa</label><input id="acctEmpresa"></div>
+            </div>
+            <div>
+              <h3>Preferencias</h3>
+              <div class="input">
+                <label>Apariencia</label>
+                <select id="acctTheme">
+                  <option value="auto">Automática (según sistema)</option>
+                  <option value="light">Claro</option>
+                  <option value="dark">Oscuro</option>
+                </select>
+              </div>
+              <h3 style="margin-top:16px">Pagos</h3>
+              <div class="input"><label>Método de pago preferido</label>
+                <select id="acctMetodo"><option>Tarjeta</option><option>Nequi</option><option>Bancolombia</option></select>
+              </div>
+              <div class="input"><label>Cuenta de depósito</label><input id="acctDeposito" placeholder="CLABE / Nº cuenta / Nequi"></div>
+              <div style="margin-top:12px"><button class="btn" id="saveAcct">Guardar cuenta</button></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modales -->
+  <div class="modal" id="modalInmueble">
+    <div class="dialog">
+      <button class="close-x" aria-label="Cerrar" onclick="closeModal('modalInmueble')">×</button>
+      <header><h3>Agregar inmueble</h3></header>
+      <div class="body">
+        <div class="field"><label>Nombre del proyecto</label><input id="imNombre" class="input" placeholder="Ej. Torres del Parque"></div>
+        <div class="field"><label>Tipo</label><select id="imTipo" class="input"><option>Apartamento</option><option>Casa</option><option>Comercial</option><option>Lote</option></select></div>
+        <div class="field"><label>Ciudad</label><input id="imCiudad" class="input" placeholder="Ej. Bogotá"></div>
+        <div class="field"><label>Zona/Barrio</label><input id="imZona" class="input" placeholder="Ej. Chapinero"></div>
+        <div class="field"><label>Área (m²)</label><input id="imArea" type="number" class="input" placeholder="65"></div>
+        <div class="field"><label>Habitaciones</label><select id="imHabs" class="input"><option>1</option><option>2</option><option>3</option><option>+3</option></select></div>
+        <div class="field"><label>Parqueadero</label><select id="imParq" class="input"><option>Sí</option><option>No</option></select></div>
+        <div class="field"><label>Precio (COP)</label><input id="imPrecio" type="number" class="input" placeholder="350000000"></div>
+        <div class="field"><label>Estado</label><select id="imEstado" class="input"><option>En venta</option><option>Reservado</option><option>Vendido</option></select></div>
+        <div class="field" style="grid-column:1/-1"><label>Descripción breve</label><input id="imDesc" class="input" placeholder="2H/2B, entrega inmediata"></div>
+      </div>
+      <footer>
+        <button class="btn ghost" onclick="closeModal('modalInmueble')">Cancelar</button>
+        <button class="btn" onclick="saveInmueble()">Guardar inmueble</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal" id="modalLead">
+    <div class="dialog">
+      <button class="close-x" aria-label="Cerrar" onclick="closeModal('modalLead')">×</button>
+      <header><h3>Subir lead</h3></header>
+      <div class="body">
+        <div class="field"><label>Nombre</label><input id="ldNombre" class="input" placeholder="Ej. Juan Pérez"></div>
+        <div class="field"><label>Teléfono</label><input id="ldTel" class="input" placeholder="WhatsApp"></div>
+        <div class="field"><label>Email</label><input id="ldEmail" class="input" placeholder="correo@dominio.com"></div>
+        <div class="field"><label>Ciudad de interés</label><input id="ldCiudad" class="input" placeholder="Ej. Medellín"></div>
+        <div class="field"><label>Presupuesto (COP)</label><input id="ldBudget" type="number" class="input" placeholder="300000000"></div>
+        <div class="field"><label>Área deseada (m²)</label><input id="ldArea" type="number" class="input" placeholder="60"></div>
+        <div class="field"><label>Hab. preferidas</label><select id="ldHabs" class="input"><option>1</option><option>2</option><option>3</option><option>+3</option></select></div>
+        <div class="field"><label>Desea parqueadero</label><select id="ldParq" class="input"><option>Sí</option><option>No</option></select></div>
+        <div class="field"><label>Tipo inmueble</label><select id="ldTipo" class="input"><option>Apartamento</option><option>Casa</option><option>Comercial</option><option>Lote</option></select></div>
+        <div class="field"><label>Motivo de descarte</label><select id="ldMotivo" class="input"><option>No contesta</option><option>Fuera de presupuesto</option><option>Ubicación no aplica</option><option>No califica</option><option>Otro</option></select></div>
+        <div class="field"><label>Origen</label><select id="ldOrigen" class="input"><option>Meta Ads</option><option>Google Ads</option><option>Portal</option><option>Orgánico</option><option>Otro</option></select></div>
+        <div class="field" style="grid-column:1/-1"><label>Notas</label><input id="ldNotas" class="input" placeholder="Detalles relevantes"></div>
+      </div>
+      <footer>
+        <button class="btn ghost" onclick="closeModal('modalLead')">Cancelar</button>
+        <button class="btn" onclick="saveLead()">Guardar lead</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="modal" id="modalPago">
+    <div class="dialog">
+      <button class="close-x" aria-label="Cerrar" onclick="closeModal('modalPago')">×</button>
+      <header><h3>PropIA Pay</h3></header>
+      <div class="body" style="grid-template-columns:1fr">
+        <div class="field"><label>Monto</label><div id="pagoMonto" class="input" style="font-weight:900"></div></div>
+        <div class="field"><label>Método de pago</label><select id="pagoMetodo" class="input"><option>Tarjeta</option><option>Nequi</option><option>Bancolombia</option></select></div>
+        <p class="input" style="border:none;padding:0;background:transparent;color:var(--muted)">* Flujo simulado. No se realiza ningún cobro real.</p>
+      </div>
+      <footer>
+        <button class="btn ghost" onclick="closeModal('modalPago')">Cancelar</button>
+        <button class="btn" id="confirmarPago">Confirmar pago</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Spotlight Tour -->
+  <div class="spot-mask" id="spotMask"></div>
+  <div class="spot-ring" id="spotRing"></div>
+  <div class="tip" id="tip">
+    <h4 id="tipTitle">Bienvenido a PropIA</h4>
+    <div id="tipText">Te mostraremos lo básico en pocos pasos.</div>
+    <div class="actions" id="tipActions">
+      <button class="btn ghost" id="tipSkip">Saltar</button>
+      <button class="btn" id="tipNext">Siguiente</button>
+    </div>
+  </div>
+
+  <!-- Checklist -->
+  <button class="check-fab" id="checkFab" aria-label="Checklist" title="Checklist de onboarding">
+    <svg viewBox="0 0 44 44" width="58" height="58" aria-hidden="true">
+      <circle cx="22" cy="22" r="20" fill="none" stroke="rgba(37,99,235,.15)" stroke-width="4"></circle>
+      <circle id="checkProg" cx="22" cy="22" r="20" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" stroke-dasharray="126" stroke-dashoffset="126" transform="rotate(-90 22 22)"></circle>
+    </svg>
+    <div class="inner">🎯</div>
+  </button>
+  <div class="check-panel glass" id="checkPanel">
+    <button class="check-close" id="checkClose">✕</button>
+    <h4>Tu primera misión en PropIA 🚀</h4>
+    <div class="task" data-key="nav"><div class="dot">•</div><div><strong>Explora el menú</strong><br><small>Abre el menú lateral</small></div></div>
+    <div class="task" data-key="inmueble"><div class="dot">•</div><div><strong>Sube un inmueble</strong><br><small>Registra un proyecto</small></div></div>
+    <div class="task" data-key="lead"><div class="dot">•</div><div><strong>Carga un lead</strong><br><small>Importa o crea uno</small></div></div>
+    <div class="task" data-key="match"><div class="dot">•</div><div><strong>Encuentra coincidencias</strong><br><small>Ejecuta el matching</small></div></div>
+    <div class="task" data-key="pago"><div class="dot">•</div><div><strong>Envía una oferta</strong><br><small>Confirma un pago simulado</small></div></div>
+  </div>
+
+  <!-- Overlay Celebración -->
+  <div class="overlay" id="celeOverlay">
+    <div class="cele-card">
+      <div style="font-size:28px">🎉</div>
+      <h3 style="margin:8px 0 4px">¡Misión completada!</h3>
+      <p style="margin:0.2rem 0;color:#485262">Has configurado lo esencial para empezar a monetizar.</p>
+      <p style="margin:8px 0 0"><strong>Siguiente paso:</strong> Explora tus <em>Coincidencias</em> y envía tu primera oferta.</p>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:10px">
+        <button class="btn" id="goMatches">Ver Coincidencias</button>
+        <button class="btn ghost" id="celeClose">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $id = (id)=>document.getElementById(id);
+  const qs = (s)=>document.querySelector(s);
+  const qsa = (s)=>Array.prototype.slice.call(document.querySelectorAll(s));
+  const on = (el,ev,cb,opt)=>el && el.addEventListener(ev,cb,opt||{passive:true});
+  function onAny(el, cb){ if(!el) return; ['click','touchend'].forEach(e=>on(el,e,(ev)=>{ev.preventDefault?.(); cb(ev);})); }
+  const uuid=()=>{let d=Date.now();return'xxxxxx-4xxx-yxxx-xxxxxx'.replace(/[xy]/g,c=>{let r=(d+Math.random()*16)%16|0;d=Math.floor(d/16);return(c==='x'?r:(r&0x3|0x8)).toString(16);});};
+  const money=(n)=>{n=Number(n||0);try{return n.toLocaleString('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0});}catch(e){return '$'+n;}};
+
+  let mem={}, lsOK=true; try{localStorage.setItem('_t','1');localStorage.removeItem('_t');}catch(e){lsOK=false;}
+  const getLS=(k,d)=>{if(!lsOK) return (k in mem?mem[k]:d); try{let v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}};
+  const setLS=(k,v)=>{if(!lsOK){mem[k]=v;return;} try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
+
+  const S = {
+    inmuebles:getLS('im',[]), leads:getLS('ld',[]), ofertas:getLS('of',[]), matches:getLS('mt',[]),
+    cfg:getLS('cfg',{"feeLead":5000,"feePct":30,"sla":24}),
+    acct:getLS('acct',{"nombre":"","email":"","tel":"","empresa":"","metodo":"Tarjeta","deposito":"","theme":"auto"}),
+    checklist:getLS('checklist', {nav:0,inmueble:0,lead:0,match:0,pago:0}),
+    _pagoCtx:null
+  };
+  const persist=()=>{ setLS('im',S.inmuebles); setLS('ld',S.leads); setLS('of',S.ofertas); setLS('mt',S.matches); setLS('cfg',S.cfg); setLS('acct',S.acct); setLS('checklist',S.checklist); };
+
+  function applyTheme(){
+    const t = S.acct.theme || 'auto';
+    document.documentElement.removeAttribute('data-theme');
+    if(t==='dark' || t==='light'){ document.documentElement.setAttribute('data-theme', t); }
+  }
+  applyTheme();
+
+  const pages=qsa('[data-page]');
+  function setView(view){
+    pages.forEach(p=>p.style.display = (p.getAttribute('data-page')===view)?'block':'none');
+    $id('pageTitle').textContent=view.charAt(0).toUpperCase()+view.slice(1);
+    $id('sidebar').classList.remove('open');
+  }
+  onAny($id('nav'), (e)=>{
+    const t=e.target.closest('button'); if(!t) return;
+    qsa('#nav button').forEach(b=>b.classList.remove('active'));
+    t.classList.add('active'); setView(t.getAttribute('data-view')); renderAll();
+    if(t.getAttribute('data-view')){ S.checklist.nav=1; updateChecklist(); persist(); }
+  });
+  onAny($id('toggleMenu'), (e)=>{ e.stopPropagation(); $id('sidebar').classList.toggle('open'); });
+
+  const quickWrap=$id('quickAddWrap');
+  onAny($id('quickAdd'), (e)=>{ e.stopPropagation(); quickWrap.classList.toggle('open'); });
+  onAny(document.body, ()=> quickWrap.classList.remove('open'));
+  onAny($id('quickAddInmueble'), ()=>{ setView('inmuebles'); openModal('modalInmueble'); });
+  onAny($id('quickAddLead'), ()=>{ setView('leads'); openModal('modalLead'); });
+
+  window.openModal=(id)=> $id(id).classList.add('show');
+  window.closeModal=(id)=> $id(id).classList.remove('show');
+  qsa('.modal').forEach(m=>on(m,'click', (e)=>{ if(e.target===m) m.classList.remove('show'); }));
+
+  onAny($id('addInmueble'), ()=> openModal('modalInmueble'));
+  window.saveInmueble=()=>{
+    const it={ id:uuid(), nombre:qs('#imNombre').value||'Proyecto sin nombre', tipo:qs('#imTipo').value, ciudad:qs('#imCiudad').value,
+      zona:qs('#imZona').value, area:parseInt(qs('#imArea').value||0), habs:qs('#imHabs').value, parq:qs('#imParq').value,
+      precio:parseInt(qs('#imPrecio').value||0), estado:qs('#imEstado').value, desc:qs('#imDesc').value, ts:Date.now() };
+    S.inmuebles.push(it); S.checklist.inmueble=1; persist(); closeModal('modalInmueble'); renderInmuebles(); renderKPIs(); addTimeline('Inmueble agregado: '+it.nombre); updateChecklist();
+  };
+  window.removeInmueble=(id)=>{ S.inmuebles=S.inmuebles.filter(x=>x.id!==id); persist(); renderInmuebles(); renderKPIs(); };
+
+  onAny($id('addLead'), ()=> openModal('modalLead'));
+  window.saveLead=()=>{
+    const it={ id:uuid(), nombre:qs('#ldNombre').value||'Lead sin nombre', tel:qs('#ldTel').value, email:qs('#ldEmail').value,
+      ciudad:qs('#ldCiudad').value, budget:parseInt(qs('#ldBudget').value||0), area:parseInt(qs('#ldArea').value||0),
+      habs:qs('#ldHabs').value, parq:qs('#ldParq').value, tipo:qs('#ldTipo').value, motivo:qs('#ldMotivo').value,
+      origen:qs('#ldOrigen').value, notas:qs('#ldNotas').value, estado:'Descartado', ts:Date.now() };
+    S.leads.push(it); S.checklist.lead=1; persist(); closeModal('modalLead'); renderLeads(); renderKPIs(); addTimeline('Lead cargado: '+it.nombre); updateChecklist();
+  };
+  window.removeLead=(id)=>{ S.leads=S.leads.filter(x=>x.id!==id); persist(); renderLeads(); renderKPIs(); };
+
+  on($id('csvInput'),'change', (e)=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const text=reader.result||''; const rows=text.split(/\r?\n/).filter(Boolean);
+      if(rows.length<2) return;
+      const hdr=rows.shift().split(',').map(s=>s.trim().toLowerCase());
+      const idx=(k)=>hdr.indexOf(k);
+      rows.forEach(r=>{
+        const c=r.split(',');
+        const it={id:uuid(), nombre:c[idx('nombre')]||'Lead', tel:c[idx('telefono')]||'', email:c[idx('email')]||'',
+          ciudad:c[idx('ciudad')]||'', budget:parseInt(c[idx('budget')]||0), area:parseInt(c[idx('area')]||0),
+          habs:c[idx('habs')]||'2', parq:c[idx('parq')]||'No', tipo:c[idx('tipo')]||'Apartamento',
+          motivo:'Importado CSV', origen:c[idx('origen')]||'CSV', estado:'Descartado', ts:Date.now()};
+        S.leads.push(it);
+      });
+      S.checklist.lead=1; persist(); renderLeads(); renderKPIs(); addTimeline('Importados '+rows.length+' leads desde CSV'); e.target.value=''; updateChecklist();
+    };
+    reader.readAsText(file);
+  });
+
+  function downloadCSV(filename, rows){
+    const csv = rows.map(r=>r.join(',')).join('\\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }
+  onAny($id('dlTplLead'), ()=>{
+    downloadCSV('plantilla_leads.csv', [
+      ['nombre','telefono','email','ciudad','budget','area','habs','parq','tipo','origen'],
+      ['Juan Pérez','3001234567','juan@email.com','Bogotá','350000000','65','2','Sí','Apartamento','Meta Ads']
+    ]);
+  });
+  onAny($id('dlTplInm'), ()=>{
+    downloadCSV('plantilla_inmuebles.csv', [
+      ['nombre','tipo','ciudad','zona','area','habs','parq','precio','estado'],
+      ['Torres del Lago','Apartamento','Bogotá','Suba','65','2','Sí','320000000','En venta']
+    ]);
+  });
+
+  const roomMatch=(pref,real)=>{
+    if(pref==='+3'){ return (real==='+3' || real==='3'); }
+    if(real==='+3'){ return (pref==='3' || pref==='+3'); }
+    return pref===real;
+  };
+  const areaMatch=(des,real)=>{ if(!des||!real) return true; const tol=0.2; return real>=des*(1-tol) && real<=des*(1+tol); };
+  function computeMatches(){
+    const M=[];
+    for(let ld of S.leads){
+      for(let im of S.inmuebles){
+        const cityOk=!ld.ciudad || (String(im.ciudad||'').toLowerCase().includes(String(ld.ciudad||'').toLowerCase()));
+        const tipoOk=!ld.tipo || im.tipo===ld.tipo;
+        const precioOk=!ld.budget || (im.precio>0 && im.precio<= (ld.budget*1.10));
+        const areaOk=areaMatch(ld.area, im.area);
+        const habOk=roomMatch(ld.habs||'', im.habs||'');
+        const parqOk=(ld.parq==='Sí' ? im.parq==='Sí' : true);
+        const score=(tipoOk?30:0)+(cityOk?25:0)+(precioOk?25:0)+(areaOk?10:0)+(habOk?5:0)+(parqOk?5:0);
+        if(score>=40){ M.push({id:uuid(), leadId:ld.id, inmId:im.id, score, ts:Date.now()}); }
+      }
+    }
+    M.sort((a,b)=>b.score-a.score); S.matches=M; persist();
+  }
+  onAny($id('btnMatchNow'), ()=>{ computeMatches(); S.checklist.match=1; persist(); renderAll(); addTimeline('Coincidencias recalculadas'); updateChecklist(); });
+  onAny($id('recompute'), ()=>{ computeMatches(); S.checklist.match=1; persist(); renderMatches(); addTimeline('Coincidencias recalculadas'); updateChecklist(); });
+
+  window.hacerOferta=(matchId)=>{
+    const m=S.matches.find(x=>x.id===matchId); if(!m) return;
+    const ld=S.leads.find(x=>x.id===m.leadId); const im=S.inmuebles.find(x=>x.id===m.inmId);
+    const monto=S.cfg.feeLead||5000;
+    const of={id:uuid(), matchId, leadId:ld?ld.id:null, inmId:im?im.id:null, monto, estado:'Enviada', ts:Date.now()};
+    S.ofertas.push(of); persist(); renderOfertas(); addTimeline('Oferta enviada por '+money(monto)+' para lead '+(ld?ld.nombre:''));
+  };
+  window.pagarOferta=(id)=>{
+    const of=S.ofertas.find(o=>o.id===id); if(!of) return;
+    S._pagoCtx={ofertaId:id};
+    $id('pagoMonto').textContent=money(of.monto);
+    $id('pagoMetodo').value=S.acct.metodo||'Tarjeta';
+    openModal('modalPago');
+  };
+  onAny($id('confirmarPago'), ()=>{
+    const ctx=S._pagoCtx; if(!ctx) return;
+    const idx=S.ofertas.findIndex(o=>o.id===ctx.ofertaId); if(idx===-1) return;
+    S.ofertas[idx].estado='Pagada'; S.ofertas[idx].metodo=$id('pagoMetodo').value; S.ofertas[idx].ts=Date.now();
+    S.checklist.pago=1; persist(); closeModal('modalPago'); renderOfertas(); renderComisiones(); renderKPIs(); addTimeline('Oferta pagada vía '+S.ofertas[idx].metodo); updateChecklist();
+  });
+  window.rechazarOferta=(id)=>{ S.ofertas=S.ofertas.filter(x=>x.id!==id); persist(); renderOfertas(); };
+
+  function addTimeline(text){
+    const tl=$id('timeline'); if(!tl) return;
+    const row=document.createElement('div'); row.className='card'; row.innerHTML='<div>'+new Date().toLocaleString()+' • '+text+'</div>';
+    tl.insertBefore(row, tl.firstChild);
+  }
+  function renderInmuebles(){
+    const q=(qs('#filtroInmuebles')?.value||'').toLowerCase();
+    const body=$id('tblInmuebles'); body.innerHTML='';
+    const list=S.inmuebles.filter(r=>JSON.stringify(r).toLowerCase().includes(q));
+    list.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+r.nombre+'</td><td>'+r.tipo+'</td><td>'+r.ciudad+'</td><td>'+(r.zona||'-')+'</td><td>'+(r.area||'-')
+        +'</td><td>'+(r.habs||'-')+'</td><td>'+(r.parq||'-')+'</td><td>'+money(r.precio)+'</td><td><span class="badge '
+        +(r.estado==='En venta'?'ok':(r.estado==='Reservado'?'warn':'info'))+'">'+r.estado+'</span></td>'
+        +'<td style="text-align:right"><button class="btn ghost" onclick="removeInmueble(\''+r.id+'\')">Eliminar</button></td>';
+      body.appendChild(tr);
+    });
+  }
+  function renderLeads(){
+    const q=(qs('#filtroLeads')?.value||'').toLowerCase();
+    const body=$id('tblLeads'); body.innerHTML='';
+    const list=S.leads.filter(r=>JSON.stringify(r).toLowerCase().includes(q));
+    list.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+r.nombre+'</td><td>'+(r.ciudad||'-')+'</td><td>'+money(r.budget)+'</td><td>'+(r.area||'-')+'</td><td>'+(r.habs||'-')
+        +'</td><td>'+(r.parq||'-')+'</td><td>'+r.tipo+'</td><td><span class="badge '+(r.estado==='Descartado'?'warn':'ok')+'">'
+        +r.estado+'</span></td><td>'+(r.origen||'-')+'</td><td style="text-align:right"><button class="btn ghost" onclick="removeLead(\''+r.id+'\')">Eliminar</button></td>';
+      body.appendChild(tr);
+    });
+  }
+  function renderMatches(){
+    const wrap=$id('matchList'); wrap.innerHTML='';
+    if(!S.matches.length){ wrap.innerHTML='<div class="panel">No hay coincidencias. Carga inmuebles y leads y presiona "Recalcular coincidencias".</div>'; return; }
+    S.matches.slice(0,200).forEach(m=>{
+      const ld=S.leads.find(x=>x.id===m.leadId);
+      const im=S.inmuebles.find(x=>x.id===m.inmId);
+      const card=document.createElement('div'); card.className='card';
+      card.innerHTML='<h4>Match '+m.score+'%</h4>'
+        +'<div><strong>Lead:</strong> '+(ld?ld.nombre:'-')+' — '+(ld?ld.ciudad:'-')+' — Presu: '+(ld?money(ld.budget):'-')+' — Área: '+(ld?ld.area:'-')+' — Hab: '+(ld?ld.habs:'-')+' — Parq: '+(ld?ld.parq:'-')+'</div>'
+        +'<div><strong>Inmueble:</strong> '+(im?im.nombre:'-')+' — '+(im?im.ciudad:'-')+' — Precio: '+(im?money(im.precio):'-')+' — Área: '+(im?im.area:'-')+' — Hab: '+(im?im.habs:'-')+' — Parq: '+(im?im.parq:'-')+'</div>'
+        +'<div style="margin-top:8px;display:flex;gap:8px"><button class="btn" onclick="hacerOferta(\''+m.id+'\')">Hacer oferta</button><button class="btn ghost" onclick="ignorarMatch(\''+m.id+'\')">Ignorar</button></div>';
+      wrap.appendChild(card);
+    });
+  }
+  window.ignorarMatch=(id)=>{ S.matches=S.matches.filter(x=>x.id!==id); persist(); renderMatches(); };
+  function renderOfertas(){
+    const body=$id('tblOfertas'); body.innerHTML='';
+    S.ofertas.forEach(o=>{
+      const ld=S.leads.find(x=>x.id===o.leadId);
+      const im=S.inmuebles.find(x=>x.id===o.inmId);
+      const actions=(o.estado==='Enviada')?('<button class="btn" onclick="pagarOferta(\''+o.id+'\')">Aceptar y pagar</button> <button class="btn ghost" onclick="rechazarOferta(\''+o.id+'\')">Rechazar</button>'):'';
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+(ld?ld.nombre:'-')+'</td><td>'+(im?im.nombre:'-')+'</td><td>'+money(o.monto)+'</td><td><span class="badge '+(o.estado==='Enviada'?'info':'ok')+'">'+o.estado+'</span></td><td style="text-align:right">'+actions+'</td>';
+      body.appendChild(tr);
+    });
+  }
+  function renderKPIs(){
+    $id('kpiLeads').textContent=S.leads.length;
+    $id('kpiInmuebles').textContent=S.inmuebles.length;
+    $id('kpiMatches').textContent=S.matches.length;
+    const pagos=S.ofertas.filter(o=>o.estado==='Pagada');
+    let ingresos=0; pagos.forEach(p=> ingresos+=p.monto||0 );
+    $id('kpiIngresos').textContent=money(ingresos);
+    $id('kpiComPag').textContent=money(ingresos);
+    $id('kpiLeadsVend').textContent=pagos.length;
+    $id('kpiTicket').textContent=money(ingresos/Math.max(1,pagos.length));
+    $id('kpiMetodo').textContent=S.acct.metodo||'—';
+    const tot=Math.max(1,S.inmuebles.length*S.leads.length);
+    $id('kpiRatio').textContent=((S.matches.length/tot)*100).toFixed(1)+'%';
+    const nNo=S.leads.filter(l=>l.motivo==='No contesta').length;
+    $id('kpiNoContact').textContent=(nNo/Math.max(1,S.leads.length)*100).toFixed(0)+'%';
+    $id('kpiCalificados').textContent=S.leads.filter(l=>l.estado!=='Descartado').length;
+    $id('kpiSLA').textContent=S.cfg.sla+' h';
+  }
+  function renderComisiones(){
+    const body=$id('tblComisiones'); if(!body) return; body.innerHTML='';
+    const pagos=S.ofertas.filter(o=>o.estado==='Pagada');
+    pagos.forEach(o=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td>'+new Date(o.ts).toLocaleDateString()+'</td><td>Lead vendido</td><td>'+money(o.monto)+'</td><td><span class="badge ok">Pagada</span></td>';
+      body.appendChild(tr);
+    });
+  }
+  function renderAll(){ renderKPIs(); renderInmuebles(); renderLeads(); renderMatches(); renderOfertas(); renderComisiones(); }
+
+  onAny($id('saveCfg'), ()=>{
+    S.cfg.feeLead = Number($id('cfgFeeLead').value||0);
+    S.cfg.feePct  = Number($id('cfgFeePct').value||0);
+    S.cfg.sla     = Number($id('cfgSLA').value||24);
+    persist(); addTimeline('Configuración guardada'); renderAll();
+  });
+  onAny($id('exportCSV'), ()=>{
+    const rows=[['tipo','payload']];
+    S.inmuebles.forEach(i=>rows.push(['inmueble', JSON.stringify(i)]));
+    S.leads.forEach(l=>rows.push(['lead', JSON.stringify(l)]));
+    S.ofertas.forEach(o=>rows.push(['oferta', JSON.stringify(o)]));
+    downloadCSV('propia_export.csv', rows);
+  });
+  onAny($id('resetData'), ()=>{
+    if(confirm('¿Reiniciar todos los datos de la demo?')){
+      S.inmuebles=[]; S.leads=[]; S.ofertas=[]; S.matches=[];
+      S.checklist={nav:0,inmueble:0,lead:0,match:0,pago:0};
+      persist(); renderAll();
+    }
+  });
+  onAny($id('saveAcct'), ()=>{
+    S.acct.nombre=$id('acctNombre').value; S.acct.email=$id('acctEmail').value;
+    S.acct.tel=$id('acctTel').value; S.acct.empresa=$id('acctEmpresa').value;
+    S.acct.metodo=$id('acctMetodo').value; S.acct.deposito=$id('acctDeposito').value;
+    S.acct.theme=$id('acctTheme').value||'auto'; persist(); applyTheme();
+    addTimeline('Cuenta actualizada'); renderAll();
+  });
+
+  const fab=$id('checkFab'), panel=$id('checkPanel'), prog=$id('checkProg');
+  function showFab(){ fab.style.display='flex'; }
+  function updateChecklistUI(){
+    let done=0, total=5;
+    qsa('.task').forEach(t=>{
+      const key=t.getAttribute('data-key');
+      if(S.checklist[key]){ t.classList.add('done'); t.querySelector('.dot').textContent='✓'; done++; }
+      else { t.classList.remove('done'); t.querySelector('.dot').textContent='•'; }
+    });
+    const pct = Math.min(1, done/total);
+    const dash = 126 * (1-pct);
+    prog.style.strokeDashoffset = String(dash);
+    prog.style.stroke = (pct===1)?'#10b981':'#2563eb';
+    fab.querySelector('.inner').textContent = (pct===1)?'✅':'🎯';
+    if(pct===1){ celebrate(); }
+  }
+  function updateChecklist(){ persist(); updateChecklistUI(); }
+  onAny(fab, (e)=>{ e.stopPropagation(); panel.style.display = (panel.style.display==='block'?'none':'block'); });
+  onAny($id('checkClose'), ()=> panel.style.display='none');
+
+  function celebrate(){
+    const ov=$id('celeOverlay'); ov.classList.add('show');
+    const burst=setInterval(()=>{
+      const s=document.createElement('div'); s.textContent=['🎊','🎉','✨','💥'][Math.floor(Math.random()*4)];
+      s.style.position='fixed'; s.style.left=(Math.random()*100)+'vw'; s.style.top='-20px'; s.style.fontSize=(18+Math.random()*14)+'px';
+      s.style.transition='transform 2.2s ease, opacity 2.2s ease'; s.style.zIndex='95';
+      document.body.appendChild(s);
+      setTimeout(()=>{ s.style.transform='translateY(110vh) rotate('+((Math.random()*120)-60)+'deg)'; s.style.opacity='0'; }, 30);
+      setTimeout(()=> s.remove(), 2400);
+    }, 120);
+    setTimeout(()=> clearInterval(burst), 1600);
+  }
+  onAny($id('celeClose'), ()=> $id('celeOverlay').classList.remove('show'));
+  onAny($id('goMatches'), ()=>{ $id('celeOverlay').classList.remove('show'); qsa('#nav button').forEach(b=>b.classList.remove('active')); qs('#nav button[data-view="coincidencias"]').classList.add('active'); setView('coincidencias'); renderMatches(); });
+
+  const mask=$id('spotMask'), ring=$id('spotRing'), tip=$id('tip'), tipTitle=$id('tipTitle'), tipText=$id('tipText'), tipActions=$id('tipActions');
+  const steps=[
+    {el:'#toggleMenu', title:'Menú', text:'Abre el menú para navegar entre secciones.'},
+    {el:'#quickAdd', title:'Agregar rápido', text:'Crea un Lead o un Inmueble desde aquí.'},
+    {el:'#btnDemoData', title:'Datos demo', text:'Carga datos de ejemplo para empezar.'},
+    {el:'coincidencias', title:'Coincidencias', text:'Ve tus matches y envía ofertas. Luego sube tu primer Lead o Inmueble.'}
+  ];
+  let idx=0, tourDone = getLS('tourDoneSpot','0')==='1';
+  function placeSpot(target){
+    if(!target){ mask.style.display='none'; ring.style.display='none'; tip.style.display='none'; return; }
+    const r=target.getBoundingClientRect();
+    const pad=10, size=Math.max(r.width, r.height)+pad*2, cx=r.left + r.width/2, cy=r.top + r.height/2;
+    ring.style.width=size+'px'; ring.style.height=size+'px';
+    ring.style.left=(cx - size/2)+'px'; ring.style.top=(cy - size/2)+'px';
+    ring.style.display='block'; mask.style.display='block'; tip.style.display='block';
+    const tipW=320, x = Math.min(window.innerWidth - tipW - 12, Math.max(12, r.left + window.scrollX + r.width + 12));
+    const y = Math.min(window.innerHeight - 140, Math.max(12, r.top + window.scrollY));
+    tip.style.left=x+'px'; tip.style.top=y+'px';
+  }
+  function showStep(i){
+    if(i>=steps.length){ endTour(); return; }
+    const s=steps[i]; let target=null;
+    if(s.el==='coincidencias'){ target = qs('#nav button[data-view="coincidencias"]'); setView('dashboard'); }
+    else { target = qs(s.el); }
+    tipTitle.textContent=s.title; tipText.textContent=s.text;
+    tipActions.innerHTML='';
+    const skip=document.createElement('button'); skip.className='btn ghost'; skip.textContent='Saltar'; onAny(skip, ()=> endTour(true));
+    tipActions.appendChild(skip);
+    const last=(i===steps.length-1);
+    if(!last){
+      const next=document.createElement('button'); next.className='btn'; next.textContent='Siguiente'; onAny(next, ()=>{ idx++; showStep(idx); }); tipActions.appendChild(next);
+    } else {
+      const btnLead=document.createElement('button'); btnLead.className='btn'; btnLead.textContent='Subir Lead'; onAny(btnLead, ()=>{ endTour(); setView('leads'); openModal('modalLead'); }); tipActions.appendChild(btnLead);
+      const btnInm=document.createElement('button'); btnInm.className='btn ghost'; btnInm.textContent='Subir Inmueble'; onAny(btnInm, ()=>{ endTour(); setView('inmuebles'); openModal('modalInmueble'); }); tipActions.appendChild(btnInm);
+    }
+    placeSpot(target);
+  }
+  function startTour(){
+    if(tourDone){ showFab(); updateChecklistUI(); return; }
+    idx=0; showStep(0);
+  }
+  function endTour(skip){
+    mask.style.display='none'; ring.style.display='none'; tip.style.display='none';
+    if(!skip){ setLS('tourDoneSpot','1'); showFab(); updateChecklistUI(); }
+  }
+
+  onAny($id('btnDemoData'), ()=>{
+    if(S.inmuebles.length===0){
+      S.inmuebles.push({id:uuid(),nombre:'Parque Central',tipo:'Apartamento',ciudad:'Bogotá',zona:'Chapinero',area:60,habs:'2',parq:'Sí',precio:320000000,estado:'En venta',desc:'Entrega inmediata',ts:Date.now()});
+      S.inmuebles.push({id:uuid(),nombre:'Mirador del Río',tipo:'Apartamento',ciudad:'Medellín',zona:'El Poblado',area:75,habs:'3',parq:'Sí',precio:480000000,estado:'En venta',desc:'Vista panorámica',ts:Date.now()});
+    }
+    if(S.leads.length===0){
+      S.leads.push({id:uuid(),nombre:'Ana Gómez',tel:'',email:'',ciudad:'Bogotá',budget:350000000,area:55,habs:'2',parq:'Sí',tipo:'Apartamento',motivo:'No contesta',origen:'Meta Ads',estado:'Descartado',ts:Date.now()});
+      S.leads.push({id:uuid(),nombre:'Carlos Rojas',tel:'',email:'',ciudad:'Medellín',budget:500000000,area:70,habs:'3',parq:'Sí',tipo:'Apartamento',motivo:'Fuera de presupuesto',origen:'Google Ads',estado:'Descartado',ts:Date.now()});
+    }
+    persist(); renderAll(); addTimeline('Datos demo cargados');
+  });
+
+  function renderAll(){ renderKPIs(); renderInmuebles(); renderLeads(); renderMatches(); renderOfertas(); renderComisiones(); }
+  document.addEventListener('DOMContentLoaded', ()=>{
+    $id('acctNombre').value=S.acct.nombre||'';
+    $id('acctEmail').value=S.acct.email||'';
+    $id('acctTel').value=S.acct.tel||'';
+    $id('acctEmpresa').value=S.acct.empresa||'';
+    $id('acctMetodo').value=S.acct.metodo||'Tarjeta';
+    $id('acctDeposito').value=S.acct.deposito||'';
+    $id('acctTheme').value=S.acct.theme||'auto';
+    setView('dashboard'); renderAll(); startTour();
+  });
+})();</script>
+</body>
+</html>
